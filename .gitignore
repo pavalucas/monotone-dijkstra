@@ -1,0 +1,11 @@
+# Build artifacts
+build/
+.DS_Store
+
+# Not part of the code repo (kept locally only)
+outputs/
+results/
+docs/
+*.pdf
+CLAUDE.md
+.claude/
