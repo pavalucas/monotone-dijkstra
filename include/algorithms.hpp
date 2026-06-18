@@ -21,6 +21,7 @@ inline const std::vector<AlgorithmEntry>& algorithm_registry() {
   static const std::vector<AlgorithmEntry> registry = {
       {"binary_heap", dijkstra_binary_heap},
       {"one_level_radix_heap", dijkstra_one_level_radix_heap},
+      {"two_level_radix_heap", dijkstra_two_level_radix_heap},
   };
   return registry;
 }

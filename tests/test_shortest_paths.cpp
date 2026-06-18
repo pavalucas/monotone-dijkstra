@@ -26,10 +26,16 @@ void require_dist(const ShortestPathResult& result, const std::vector<Weight>& e
 
 void require_same_results(const Graph& graph, int source) {
   const auto binary = sssp::dijkstra_binary_heap(graph, source);
-  const auto radix = sssp::dijkstra_one_level_radix_heap(graph, source);
-  require(binary.dist == radix.dist, "binary heap and radix heap returned different distances");
-  require(sssp::distance_checksum(binary.dist) == sssp::distance_checksum(radix.dist),
-          "binary heap and radix heap checksums differ");
+  const auto one_level = sssp::dijkstra_one_level_radix_heap(graph, source);
+  const auto two_level = sssp::dijkstra_two_level_radix_heap(graph, source);
+  require(binary.dist == one_level.dist,
+          "binary heap and one-level radix heap returned different distances");
+  require(binary.dist == two_level.dist,
+          "binary heap and two-level radix heap returned different distances");
+  require(sssp::distance_checksum(binary.dist) == sssp::distance_checksum(one_level.dist),
+          "binary heap and one-level radix heap checksums differ");
+  require(sssp::distance_checksum(binary.dist) == sssp::distance_checksum(two_level.dist),
+          "binary heap and two-level radix heap checksums differ");
 }
 
 void test_small_weighted_graph() {
@@ -43,6 +49,7 @@ void test_small_weighted_graph() {
   const std::vector<Weight> expected = {0, 2, 3, 4};
   require_dist(sssp::dijkstra_binary_heap(graph, 0), expected);
   require_dist(sssp::dijkstra_one_level_radix_heap(graph, 0), expected);
+  require_dist(sssp::dijkstra_two_level_radix_heap(graph, 0), expected);
   require_same_results(graph, 0);
 }
 
@@ -55,6 +62,7 @@ void test_unreachable_vertices() {
   const std::vector<Weight> expected = {0, 3, 7, INF, INF};
   require_dist(sssp::dijkstra_binary_heap(graph, 0), expected);
   require_dist(sssp::dijkstra_one_level_radix_heap(graph, 0), expected);
+  require_dist(sssp::dijkstra_two_level_radix_heap(graph, 0), expected);
   require_same_results(graph, 0);
 }
 
@@ -68,6 +76,7 @@ void test_zero_weight_edges() {
   const std::vector<Weight> expected = {0, 0, 0, 2};
   require_dist(sssp::dijkstra_binary_heap(graph, 0), expected);
   require_dist(sssp::dijkstra_one_level_radix_heap(graph, 0), expected);
+  require_dist(sssp::dijkstra_two_level_radix_heap(graph, 0), expected);
   require_same_results(graph, 0);
 }
 
@@ -83,6 +92,7 @@ void test_cycle_graph() {
   const std::vector<Weight> expected = {0, 3, 1, 4, 11};
   require_dist(sssp::dijkstra_binary_heap(graph, 0), expected);
   require_dist(sssp::dijkstra_one_level_radix_heap(graph, 0), expected);
+  require_dist(sssp::dijkstra_two_level_radix_heap(graph, 0), expected);
   require_same_results(graph, 0);
 }
 
@@ -105,6 +115,7 @@ void test_unit_weight_grid_graph() {
   };
   require_dist(sssp::dijkstra_binary_heap(graph, 0), expected);
   require_dist(sssp::dijkstra_one_level_radix_heap(graph, 0), expected);
+  require_dist(sssp::dijkstra_two_level_radix_heap(graph, 0), expected);
   require_same_results(graph, 0);
 }
 
@@ -124,6 +135,23 @@ void test_seeded_weighted_grid_consistency() {
   require_same_results(graph, 119);
 }
 
+void test_large_weight_range_consistency() {
+  // Large C forces distances across many base-K digits, exercising the
+  // two-level heap's redistribution across top-level buckets.
+  const Graph graph = sssp::make_grid_graph({
+      .rows = 40,
+      .cols = 40,
+      .max_weight = 1'000'000,
+      .seed = 98765,
+      .bidirectional = true,
+  });
+
+  require(graph.vertex_count() == 1600, "40x40 grid should have 1600 vertices");
+  require_same_results(graph, 0);
+  require_same_results(graph, 800);
+  require_same_results(graph, 1599);
+}
+
 }  // namespace
 
 int main() {
@@ -133,6 +161,7 @@ int main() {
   test_cycle_graph();
   test_unit_weight_grid_graph();
   test_seeded_weighted_grid_consistency();
+  test_large_weight_range_consistency();
 
   std::cout << "All shortest-path tests passed.\n";
   return 0;

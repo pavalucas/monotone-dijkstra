@@ -76,6 +76,10 @@ inline ShortestPathResult dijkstra_one_level_radix_heap(const Graph& graph, Vert
   return dijkstra_with_queue<RadixHeapQueue>(graph, source);
 }
 
+inline ShortestPathResult dijkstra_two_level_radix_heap(const Graph& graph, Vertex source) {
+  return dijkstra_with_queue<TwoLevelRadixHeapQueue>(graph, source);
+}
+
 inline std::uint64_t distance_checksum(const std::vector<Weight>& dist) {
   constexpr std::uint64_t mod = 1'000'000'007ULL;
   std::uint64_t checksum = 0;
