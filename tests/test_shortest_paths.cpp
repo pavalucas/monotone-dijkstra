@@ -152,6 +152,44 @@ void test_large_weight_range_consistency() {
   require_same_results(graph, 1599);
 }
 
+void test_sparse_graph_connectivity_and_consistency() {
+  const Graph graph = sssp::make_sparse_graph({
+      .vertices = 2000,
+      .edges = 6000,
+      .max_weight = 1'000'000,
+      .seed = 4242,
+  });
+
+  require(graph.vertex_count() == 2000, "sparse graph should have 2000 vertices");
+  require(graph.edge_count() == 6000, "sparse graph should have 6000 edges");
+
+  // The random spanning tree guarantees every vertex is reachable from 0.
+  const auto result = sssp::dijkstra_binary_heap(graph, 0);
+  for (Weight d : result.dist) {
+    require(d != INF, "every vertex must be reachable from source 0");
+  }
+
+  require_same_results(graph, 0);
+  require_same_results(graph, 1000);
+}
+
+void test_sparse_graph_edge_floor() {
+  // Requesting fewer edges than the spanning tree still yields a connected graph.
+  const Graph graph = sssp::make_sparse_graph({
+      .vertices = 50,
+      .edges = 0,
+      .max_weight = 10,
+      .seed = 1,
+  });
+
+  require(graph.edge_count() == 49, "edge count should be raised to vertices-1");
+  const auto result = sssp::dijkstra_binary_heap(graph, 0);
+  for (Weight d : result.dist) {
+    require(d != INF, "every vertex must be reachable from source 0");
+  }
+  require_same_results(graph, 0);
+}
+
 }  // namespace
 
 int main() {
@@ -162,6 +200,8 @@ int main() {
   test_unit_weight_grid_graph();
   test_seeded_weighted_grid_consistency();
   test_large_weight_range_consistency();
+  test_sparse_graph_connectivity_and_consistency();
+  test_sparse_graph_edge_floor();
 
   std::cout << "All shortest-path tests passed.\n";
   return 0;

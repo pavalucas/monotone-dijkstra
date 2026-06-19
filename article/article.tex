@@ -1,0 +1,63 @@
+% Corpo do artigo. Cada seção abaixo é um esqueleto a ser preenchido nos
+% blocos de escrita (ver docs/timeline.md). Mantenha o estilo denso de duas
+% colunas do template (~3000 palavras em 2 páginas).
+
+\section{Introdução}
+% TODO (bloco Qua Jun 24): caminhos mínimos em programação competitiva, por que
+% a escolha da fila importa, visão geral do artigo de referência (Costa et al.).
+O problema do caminho mínimo de fonte única (\textit{single-source shortest
+path}, SSSP) é recorrente em programação competitiva. Em grafos com pesos
+inteiros não-negativos, o algoritmo de Dijkstra resolve o problema, e seu
+desempenho depende fortemente da fila de prioridade utilizada. Neste artigo
+revisitamos filas de prioridade \textit{monótonas} --- aquelas em que as chaves
+extraídas nunca decrescem --- seguindo o levantamento de Costa et al.
+\cite{costa2025monotone}.
+
+\section{Algoritmos}
+% TODO (bloco Qua Jun 24): binary heap (baseline), radix heap de um nível e de
+% dois níveis; explicar o truque XOR/dígito base-K.
+Comparamos três filas de prioridade. O \textit{binary heap} serve de linha de
+base. O \textit{radix heap} de um nível distribui as chaves em \textit{buckets}
+indexados pelo bit mais significativo em que diferem do mínimo corrente. O
+\textit{radix heap} de dois níveis generaliza essa ideia para dígitos na base
+$K$, reduzindo o número de níveis que um elemento percorre.
+
+\begin{table}[H]
+    \centering
+    \caption{Complexidade de Dijkstra por fila de prioridade. $C$ é o maior
+    peso de aresta.}
+    \label{tab:complexidade}
+    \footnotesize
+    \begin{tabular}{@{}ll@{}}
+        \toprule
+        Fila de prioridade & Complexidade \\
+        \midrule
+        Binary heap & $\mathcal{O}((m+n)\log n)$ \\
+        Radix heap (1 nível) & $\mathcal{O}(m + n\log C)$ \\
+        Radix heap (2 níveis) & $\mathcal{O}(m + n\log C / \log\log C)$ \\
+        Radix + Fibonacci heap & $\mathcal{O}(m + n\sqrt{\log C})$ \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+% A variante com Fibonacci heap é apenas mencionada (teórica); não a implementamos.
+
+\section{Implementação}
+% TODO (bloco Qui Jun 25): trechos de código curtos -- estrutura de buckets do
+% radix heap e o índice de bucket via XOR (one-level) / dígito base-K (two-level).
+% Exemplo de inclusão de código:
+% \begin{lstlisting}[caption={Índice de bucket no radix heap de dois níveis.}]
+% ... colar trecho de include/radix_heap.hpp ...
+% \end{lstlisting}
+
+\section{Experimentos}
+% TODO (bloco Qui Jun 25): famílias de grafos (grid, esparso, denso, em camadas),
+% faixas de peso C, metodologia (mediana de runtime, contadores de operação),
+% resultados em tabela ou figura.
+
+\section{Análise}
+% TODO (bloco Sex Jun 26): onde os radix heaps ganham (C grande, grafos esparsos)
+% e onde não ganham (C pequeno, grafos densos).
+
+\section{Conclusão}
+% TODO (bloco Sex Jun 26): conclusões práticas para programadores competitivos.

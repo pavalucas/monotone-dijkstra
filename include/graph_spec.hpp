@@ -26,6 +26,12 @@ inline int param_int(const std::map<std::string, std::string>& params,
   return it == params.end() ? fallback : std::stoi(it->second);
 }
 
+inline std::uint64_t param_u64(const std::map<std::string, std::string>& params,
+                               const std::string& key, std::uint64_t fallback) {
+  const auto it = params.find(key);
+  return it == params.end() ? fallback : std::stoull(it->second);
+}
+
 inline bool param_bool(const std::map<std::string, std::string>& params,
                        const std::string& key, bool fallback) {
   const auto it = params.find(key);
@@ -45,6 +51,16 @@ inline Graph build_graph(const GraphSpec& spec) {
         .max_weight = spec.max_weight,
         .seed = spec.seed,
         .bidirectional = detail::param_bool(spec.params, "bidirectional", true),
+    });
+  }
+  if (spec.family == "sparse") {
+    const int vertices = detail::param_int(spec.params, "vertices", 100000);
+    return make_sparse_graph({
+        .vertices = vertices,
+        .edges = detail::param_u64(spec.params, "edges",
+                                   static_cast<std::uint64_t>(vertices) * 3),
+        .max_weight = spec.max_weight,
+        .seed = spec.seed,
     });
   }
   throw std::invalid_argument("unknown graph family: " + spec.family);
