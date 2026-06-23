@@ -42,6 +42,12 @@ $K$, reduzindo o número de níveis que um elemento percorre.
 
 % A variante com Fibonacci heap é apenas mencionada (teórica); não a implementamos.
 
+% Foreshadowing (expandir no bloco Qua Jun 24): a Tabela~\ref{tab:complexidade}
+% troca o fator $\log n$ por operação do binary heap por $\log C$. Logo, espera-se
+% que os radix heaps vençam quando $\log C < \log n$ (pesos pequenos e/ou grafos
+% grandes) e percam quando $C$ é muito grande --- hipótese que os experimentos
+% testam.
+
 \section{Implementação}
 % TODO (bloco Qui Jun 25): trechos de código curtos -- estrutura de buckets do
 % radix heap e o índice de bucket via XOR (one-level) / dígito base-K (two-level).
@@ -51,15 +57,59 @@ $K$, reduzindo o número de níveis que um elemento percorre.
 % \end{lstlisting}
 
 \section{Experimentos}
-% TODO (bloco Qui Jun 25): famílias de grafos (grid, esparso, denso, em camadas),
-% faixas de peso C, metodologia (mediana de runtime, contadores de operação).
-% A tabela abaixo é gerada por scripts/analyze_results.py a partir do
-% results.csv mais recente; regenere após cada execução do full_sweep.
+% TODO (bloco Qui Jun 25): descrever metodologia e famílias.
+% Metodologia: 5 fontes x 3 repetições por configuração, mediana reportada,
+% semente fixa (seed=1); experiments/full_sweep.sh cobre as 4 famílias x
+% C in {10, 1e3, 1e6, 1e9}. Hardware/compilador em manifest.txt.
+% Famílias e por que cada uma (variam densidade, estrutura e dispersão de
+% distâncias): grid (planar, esparso, distâncias muito dispersas), sparse
+% (aleatório, m ~ 3n), dense (Erdős–Rényi, m ~ n^2, portanto n pequeno),
+% layered (DAG em camadas, distâncias concentradas por camada).
+%
+% Tabela de runtime (Tabela~\ref{tab:resultados}) e contadores de operação
+% (Tabela~\ref{tab:opcounts}) são geradas por scripts/analyze_results.py a
+% partir do results.csv mais recente; regenere após cada full_sweep.
 \input{results_table}
 
+\input{opcounts_table}
+
+% A Tabela~\ref{tab:opcounts} expõe as causas estruturais usadas na Análise:
+% push/$n$ (atividade de decrease-key) e \textit{stale}\% (remoções obsoletas
+% sob lazy deletion). Note o $n$ pequeno de dense (m ~ n^2 limita n) e a baixa
+% fração stale de sparse.
+
 \section{Análise}
-% TODO (bloco Sex Jun 26): onde os radix heaps ganham (C grande, grafos esparsos)
-% e onde não ganham (C pequeno, grafos densos).
+% NOTAS PARA ESCRITA (bloco Sex Jun 26). Expandir em prosa densa.
+% (Atenção: radix vence com C PEQUENO; perde com C GRANDE.)
+%
+% Resumo do achado: a C=10 todas as famílias favorecem um radix (em geral o de
+% dois níveis); o cruzamento ocorre entre C=1e3 e C=1e6; a partir daí o binary
+% heap vence. Ordem da vantagem do radix a C=10:
+% sparse 1.70x > layered 1.57x > grid 1.32x > dense 1.11x.
+%
+% TRÊS ALAVANCAS que explicam o resultado:
+%   1. n (tamanho do heap): custo do binary ~ (pushes+pops)*log n. n maior =>
+%      mais a economizar com push O(1) do radix. (ver Tabela~\ref{tab:opcounts})
+%   2. stale% (lazy deletion): muitas remoções obsoletas inflam o fator constante
+%      do radix (churn nos buckets).
+%   3. dispersão de distâncias: define o quão forte o termo n*log C pesa; quanto
+%      mais larga/uniforme a faixa de distâncias, mais cedo o radix degrada com C.
+%
+% POR FAMÍLIA:
+%   - dense: vence menos (1.11x). m ~ n^2 limita n a 2000 => log n ~ 11, barato
+%     para o binary; além disso a maior fração stale (Tabela~\ref{tab:opcounts}).
+%   - grid: vitória moderada a C pequeno, mas DEGRADA MAIS RÁPIDO com C ---
+%     distâncias muito dispersas/uniformes fazem o n*log C explodir; o radix de
+%     1 nível colapsa a C=1e3 (grid n=360k: 41ms vs 21ms do de 2 níveis).
+%   - layered: vitória forte (1.57x) e robusta a C --- distâncias concentradas
+%     por camada (frente de onda monótona) minimizam redistribuição, mesmo com
+%     menos pushes (DAG).
+%   - sparse: vence mais (1.70--1.83x) --- maior n (log n ~ 18) e menor fração
+%     stale; toda alavanca aponta para o radix.
+%
+% DOIS NÍVEIS vs UM NÍVEL: o radix de dois níveis domina o de um nível em quase
+% toda a tabela; o caso ilustrativo é grid C=1e3 (colapso do de 1 nível). O
+% fator log log C amortece o crescimento com C.
 
 \section{Conclusão}
 % TODO (bloco Sex Jun 26): conclusões práticas para programadores competitivos.
