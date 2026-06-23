@@ -63,6 +63,23 @@ inline Graph build_graph(const GraphSpec& spec) {
         .seed = spec.seed,
     });
   }
+  if (spec.family == "dense") {
+    return make_dense_graph({
+        .vertices = detail::param_int(spec.params, "vertices", 1500),
+        .density_percent = detail::param_int(spec.params, "density", 30),
+        .max_weight = spec.max_weight,
+        .seed = spec.seed,
+    });
+  }
+  if (spec.family == "layered") {
+    return make_layered_graph({
+        .layers = detail::param_int(spec.params, "layers", 300),
+        .width = detail::param_int(spec.params, "width", 300),
+        .degree = detail::param_int(spec.params, "degree", 3),
+        .max_weight = spec.max_weight,
+        .seed = spec.seed,
+    });
+  }
   throw std::invalid_argument("unknown graph family: " + spec.family);
 }
 

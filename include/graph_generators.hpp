@@ -108,4 +108,109 @@ inline Graph make_sparse_graph(const SparseGraphOptions& options) {
   return graph;
 }
 
+struct DenseGraphOptions {
+  int vertices;
+  int density_percent;  // probability (%) that each ordered pair (u != v) is an edge
+  Weight max_weight;
+  std::uint64_t seed = 1;
+};
+
+// Dense Erdős–Rényi directed graph: each ordered pair (u, v), u != v, is an edge
+// with probability density_percent/100, giving an expected m ≈ p·n(n-1). A
+// random spanning tree is added first so every vertex is reachable from 0.
+inline Graph make_dense_graph(const DenseGraphOptions& options) {
+  if (options.vertices <= 0) {
+    throw std::invalid_argument("dense vertices must be positive");
+  }
+  if (options.density_percent <= 0 || options.density_percent > 100) {
+    throw std::invalid_argument("dense density_percent must be in (0, 100]");
+  }
+  if (options.max_weight == 0) {
+    throw std::invalid_argument("dense max_weight must be positive");
+  }
+
+  Graph graph(options.vertices);
+  std::mt19937_64 rng(options.seed);
+  std::uniform_int_distribution<Weight> weight_dist(1, options.max_weight);
+  std::bernoulli_distribution edge_dist(options.density_percent / 100.0);
+
+  auto add_edge = [&](Vertex from, Vertex to) {
+    graph.add_edge(from, to, weight_dist(rng));
+  };
+
+  for (int i = 1; i < options.vertices; ++i) {
+    std::uniform_int_distribution<int> parent_dist(0, i - 1);
+    add_edge(parent_dist(rng), i);
+  }
+
+  for (int u = 0; u < options.vertices; ++u) {
+    for (int v = 0; v < options.vertices; ++v) {
+      if (u != v && edge_dist(rng)) {
+        add_edge(u, v);
+      }
+    }
+  }
+
+  return graph;
+}
+
+struct LayeredGraphOptions {
+  int layers;  // number of width-W layers after the single super-source
+  int width;
+  int degree;  // extra forward edges per node into the next layer
+  Weight max_weight;
+  std::uint64_t seed = 1;
+};
+
+// Layered DAG: vertex 0 is a super-source feeding layer 1; layers 1..L each have
+// `width` nodes with edges only to the next layer. Every node gets one guaranteed
+// parent in the previous layer (so all are reachable from 0) plus `degree` extra
+// random forward edges. Vertex count is 1 + layers*width.
+inline Graph make_layered_graph(const LayeredGraphOptions& options) {
+  if (options.layers <= 0) {
+    throw std::invalid_argument("layered layers must be positive");
+  }
+  if (options.width <= 0) {
+    throw std::invalid_argument("layered width must be positive");
+  }
+  if (options.degree < 0) {
+    throw std::invalid_argument("layered degree must be non-negative");
+  }
+  if (options.max_weight == 0) {
+    throw std::invalid_argument("layered max_weight must be positive");
+  }
+
+  Graph graph(1 + options.layers * options.width);
+  std::mt19937_64 rng(options.seed);
+  std::uniform_int_distribution<Weight> weight_dist(1, options.max_weight);
+  std::uniform_int_distribution<int> idx_dist(0, options.width - 1);
+
+  // Vertex id of node `i` in layer `layer` (layer >= 1); layer 0 is vertex 0.
+  auto node_id = [&](int layer, int i) {
+    return 1 + (layer - 1) * options.width + i;
+  };
+
+  auto add_edge = [&](Vertex from, Vertex to) {
+    graph.add_edge(from, to, weight_dist(rng));
+  };
+
+  for (int i = 0; i < options.width; ++i) {
+    add_edge(0, node_id(1, i));
+  }
+
+  for (int layer = 1; layer < options.layers; ++layer) {
+    for (int i = 0; i < options.width; ++i) {
+      add_edge(node_id(layer, idx_dist(rng)), node_id(layer + 1, i));
+    }
+    for (int i = 0; i < options.width; ++i) {
+      const Vertex u = node_id(layer, i);
+      for (int e = 0; e < options.degree; ++e) {
+        add_edge(u, node_id(layer + 1, idx_dist(rng)));
+      }
+    }
+  }
+
+  return graph;
+}
+
 }  // namespace sssp

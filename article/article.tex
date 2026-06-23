@@ -52,8 +52,10 @@ $K$, reduzindo o número de níveis que um elemento percorre.
 
 \section{Experimentos}
 % TODO (bloco Qui Jun 25): famílias de grafos (grid, esparso, denso, em camadas),
-% faixas de peso C, metodologia (mediana de runtime, contadores de operação),
-% resultados em tabela ou figura.
+% faixas de peso C, metodologia (mediana de runtime, contadores de operação).
+% A tabela abaixo é gerada por scripts/analyze_results.py a partir do
+% results.csv mais recente; regenere após cada execução do full_sweep.
+\input{results_table}
 
 \section{Análise}
 % TODO (bloco Sex Jun 26): onde os radix heaps ganham (C grande, grafos esparsos)
@@ -61,3 +63,9 @@ $K$, reduzindo o número de níveis que um elemento percorre.
 
 \section{Conclusão}
 % TODO (bloco Sex Jun 26): conclusões práticas para programadores competitivos.
+
+% Trabalhos futuros: avaliar as filas em redes reais (instâncias DIMACS de
+% estradas dos EUA), cujos pesos correspondem a distâncias/tempos --- $C$
+% moderado em grafos esparsos e quase planares, próximo do caso favorável aos
+% radix heaps. Exigiria um leitor de arquivos \texttt{.gr}/\texttt{.co}. Também
+% fica em aberto a variante com Fibonacci heap ($\mathcal{O}(m + n\sqrt{\log C})$).

@@ -190,6 +190,40 @@ void test_sparse_graph_edge_floor() {
   require_same_results(graph, 0);
 }
 
+void test_dense_graph_connectivity_and_consistency() {
+  const Graph graph = sssp::make_dense_graph({
+      .vertices = 400,
+      .density_percent = 25,
+      .max_weight = 1'000'000,
+      .seed = 77,
+  });
+
+  require(graph.vertex_count() == 400, "dense graph should have 400 vertices");
+  const auto result = sssp::dijkstra_binary_heap(graph, 0);
+  for (Weight d : result.dist) {
+    require(d != INF, "every vertex must be reachable from source 0");
+  }
+  require_same_results(graph, 0);
+  require_same_results(graph, 200);
+}
+
+void test_layered_graph_connectivity_and_consistency() {
+  const Graph graph = sssp::make_layered_graph({
+      .layers = 50,
+      .width = 30,
+      .degree = 3,
+      .max_weight = 1'000'000,
+      .seed = 31,
+  });
+
+  require(graph.vertex_count() == 1 + 50 * 30, "layered graph vertex count mismatch");
+  const auto result = sssp::dijkstra_binary_heap(graph, 0);
+  for (Weight d : result.dist) {
+    require(d != INF, "every vertex must be reachable from super-source 0");
+  }
+  require_same_results(graph, 0);
+}
+
 }  // namespace
 
 int main() {
@@ -202,6 +236,8 @@ int main() {
   test_large_weight_range_consistency();
   test_sparse_graph_connectivity_and_consistency();
   test_sparse_graph_edge_floor();
+  test_dense_graph_connectivity_and_consistency();
+  test_layered_graph_connectivity_and_consistency();
 
   std::cout << "All shortest-path tests passed.\n";
   return 0;
