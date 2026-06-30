@@ -9,3 +9,13 @@ docs/
 *.pdf
 CLAUDE.md
 .claude/
+# LaTeX / Beamer build artifacts (article folders + slides)
+*.aux
+*.bbl
+*.blg
+*.log
+*.out
+*.nav
+*.snm
+*.toc
+*.vrb
