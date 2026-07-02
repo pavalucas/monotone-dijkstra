@@ -21,6 +21,23 @@ path problem"* (J. ACM 37, 1990).
 
 `C` is the maximum edge weight.
 
+## Where the code is
+
+All the implementation lives under [`include/`](include/) (header-only) and
+[`src/`](src/):
+
+| File | Contents |
+|---|---|
+| [`include/radix_heap.hpp`](include/radix_heap.hpp) | **one-level and two-level radix heaps** — the core of this project |
+| [`include/binary_heap.hpp`](include/binary_heap.hpp) | baseline binary heap (`std::priority_queue` wrapper) |
+| [`include/dijkstra.hpp`](include/dijkstra.hpp) | generic Dijkstra driver with lazy deletion, templated on the queue |
+| [`include/graph.hpp`](include/graph.hpp) | directed weighted graph (adjacency list) |
+| [`include/graph_generators.hpp`](include/graph_generators.hpp) | grid, sparse, dense and layered graph generators |
+| [`include/graph_spec.hpp`](include/graph_spec.hpp) | graph-family dispatch (`--family`/`--param` → generator) |
+| [`include/algorithms.hpp`](include/algorithms.hpp) | algorithm registry (name → SSSP function) |
+| [`src/benchmark.cpp`](src/benchmark.cpp) | CLI benchmark: algorithms × graph family → CSV |
+| [`tests/test_shortest_paths.cpp`](tests/test_shortest_paths.cpp) | unit tests |
+
 ## Graph families
 
 The benchmark generates four synthetic families (selected with `--family`):
@@ -87,15 +104,6 @@ Summarize a run's `results.csv` into median tables with
   [`include/graph_generators.hpp`](include/graph_generators.hpp) and a branch to
   `build_graph` in [`include/graph_spec.hpp`](include/graph_spec.hpp).
 
-## Write-up
-
-The repository also contains the project write-up and presentation, each built
-to PDF by its own `build.sh`:
-
-- [`article/`](article/) — tutorial-style article for the SBC Maratona Revista.
-- [`article-course/`](article-course/) — scientific paper (course submission, SBC template).
-- [`slides/`](slides/) — Beamer presentation.
-
 ## Layout
 
 ```
@@ -104,9 +112,6 @@ src/            benchmark.cpp — generic CLI benchmark
 scripts/        run.sh, lib.sh, analyze_results.py, plot_results.py
 experiments/    grid_sweep.sh, full_sweep.sh
 tests/          unit tests (no framework)
-article/        write-up — Revista Maratona (tutorial)
-article-course/ write-up — course submission (scientific, SBC template)
-slides/         Beamer presentation
 ```
 
 ## License

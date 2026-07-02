@@ -6,6 +6,9 @@ build/
 outputs/
 results/
 docs/
+article/
+article-course/
+slides/
 *.pdf
 CLAUDE.md
 .claude/
